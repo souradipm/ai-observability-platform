@@ -1,0 +1,85 @@
+services:
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: ai-observability-kafka
+
+    ports:
+      - "9092:9092"
+
+    environment:
+
+      # -----------------------------
+      # KRaft
+      # -----------------------------
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+
+      # -----------------------------
+      # Listeners
+      # -----------------------------
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+
+      KAFKA_LISTENERS: INTERNAL://:29092,EXTERNAL://:9092,CONTROLLER://:29093
+
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+
+      # -----------------------------
+      # Single-broker development setup
+      # -----------------------------
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
+      # -----------------------------
+      # Topic management
+      # -----------------------------
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+
+      # -----------------------------
+      # Consumer development convenience
+      # -----------------------------
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: ai-observability-kafka-ui
+
+    ports:
+      - "8081:8080"
+
+    environment:
+
+      KAFKA_CLUSTERS_0_NAME: ai-observability-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+
+    depends_on:
+      - kafka
+
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.4.2
+    container_name: ai-observability-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+
+
+volumes:
+  kafka-data:
+  elasticsearch_data:

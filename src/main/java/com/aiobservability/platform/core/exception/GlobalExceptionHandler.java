@@ -42,6 +42,16 @@ public class GlobalExceptionHandler {
                         Collections.emptyList()));
     }
 
+    @ExceptionHandler(KafkaPublishException.class)
+    public ResponseEntity<ErrorResponse> handleKafkaPublishException(
+            KafkaPublishException exception) {
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(buildErrorResponse(
+                        exception.getMessage(),
+                        Collections.emptyList()));
+    }
+
     private ErrorResponse buildErrorResponse(
             String message,
             List<ValidationError> errors) {
